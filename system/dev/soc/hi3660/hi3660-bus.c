@@ -232,10 +232,6 @@ static mx_status_t hi3660_bind(void* ctx, mx_device_t* parent, void** cookie) {
         goto fail;
     }
 
-    if ((status = hi3360_usb_init(bus)) != MX_OK) {
-        goto fail;
-    }
-
     device_add_args_t args = {
         .version = DEVICE_ADD_ARGS_VERSION,
         .name = "hi3660-bus",
@@ -259,6 +255,12 @@ static mx_status_t hi3660_bind(void* ctx, mx_device_t* parent, void** cookie) {
     thrd_t thrd;
     thrd_create_with_name(&thrd, led_test_thread, parent, "led_test_thread");
 #endif
+
+    // must be after pdev_set_interface
+    if ((status = hi3360_usb_init(bus)) != MX_OK) {
+        printf("hi3660_bind: hi3360_usb_init failed!\n");;
+    }
+
 
     return MX_OK;
 

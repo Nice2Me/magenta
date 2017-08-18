@@ -5,6 +5,11 @@
 #include <hw/reg.h>
 #include <stdio.h>
 
+#include <ddk/device.h>
+#include <ddk/driver.h>
+#include <ddk/protocol/gpio.h>
+#include <ddk/protocol/platform-device.h>
+
 #include "hi3660-bus.h"
 #include "hi3660-regs.h"
 
@@ -250,6 +255,19 @@ printf("hi3360_usb_init\n");
     volatile void* usb3otg_bc = bus->usb3otg_bc.vaddr;
     volatile void* peri_crg = bus->peri_crg.vaddr;
     volatile void* pctrl = bus->pctrl.vaddr;
+
+    gpio_protocol_t gpio;
+    if (pdev_get_protocol(&bus->pdev, MX_PROTOCOL_GPIO, &gpio) != MX_OK) {
+        printf("hi3360_usb_init: could not get GPIO protocol!\n");
+        return MX_ERR_INTERNAL;
+    }
+
+    // disable host vbus
+    gpio_config(&gpio, 46, GPIO_DIR_OUT);
+    gpio_write(&gpio, 46, 0);
+    // enable type-c vbus
+    gpio_config(&gpio, 202, GPIO_DIR_OUT);
+    gpio_write(&gpio, 202, 1);
 
 // xxx_usb3otg_bc = usb3otg_bc;
 
